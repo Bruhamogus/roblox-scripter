@@ -1,0 +1,30 @@
+Speed glove 
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local SlapEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local glove = script.Parent
+
+glove.Touched:Connect(function(hit)
+	local victim = hit.Parent
+	if victim:FindFirstChild("Humanoid") then
+		victim.Humanoid:TakeDamage(0)
+		victim.Humanoid.PlatformStand = true
+		victim:SetPrimaryPartCFrame(victim.PrimaryPart.CFrame + Vector3.new(0,1.5,0))
+		wait(0.1)
+		victim.Humanoid.PlatformStand = false
+		SlapEvent:FireServer(victim)
+	end
+end)
+
+SlapEvent.OnClientEvent:Connect(function(victim)
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+	humanoid.WalkSpeed = humanoid.WalkSpeed * 4
+end)

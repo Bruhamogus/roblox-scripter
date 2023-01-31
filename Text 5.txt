@@ -1,0 +1,43 @@
+ICE glove 
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local playerSlapped = ReplicatedStorage:WaitForChild("PlayerSlapped")
+
+local function onEquip(mouse)
+	local player = game.Players.LocalPlayer
+	local target = mouse.Target
+	
+	if target and target:IsA("Player") and target ~= player then
+		playerSlapped:FireServer(target)
+	end
+end
+
+script.Parent.Equipped:Connect(onEquip)
+
+playerSlapped.OnServerEvent:Connect(function(player, target)
+	local humanoid = target.Character:WaitForChild("Humanoid")
+	
+	local originalSize = humanoid.BodyHeight
+	humanoid.BodyHeight = 3
+	humanoid.BodyWidth = 2
+	humanoid.BodyType = Enum.BodyType.Custom
+	humanoid.Head.Transparency = 1
+	humanoid.Torso.Transparency = 1
+	humanoid.LeftArm.Transparency = 1
+	humanoid.RightArm.Transparency = 1
+	humanoid.LeftLeg.Transparency = 1
+	humanoid.RightLeg.Transparency = 1
+	
+	wait(3)
+	
+	humanoid.BodyHeight = originalSize
+	humanoid.BodyType = Enum.BodyType.Dynamic
+	humanoid.Head.Transparency = 0
+	humanoid.Torso.Transparency = 0
+	humanoid.LeftArm.Transparency = 0
+	humanoid.RightArm.Transparency = 0
+	humanoid.LeftLeg.Transparency = 0
+	humanoid.RightLeg.Transparency = 0
+end)

@@ -1,0 +1,23 @@
+dog glove
+
+-- Variables
+local walkSpeed = 16 -- Change this to adjust the speed of the dog's walk
+
+-- Function that changes the player's character to a dog
+local function turnIntoDog(hit)
+    local character = hit.Parent
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        -- Remove the player's current humanoid
+        humanoid:Destroy()
+        
+        -- Load the dog character model
+        local dog = game.ServerStorage.Dog:Clone()
+        dog.Parent = character
+        
+        -- Add a new humanoid to the dog character
+        local newHumanoid = Instance.new("Humanoid")
+        newHumanoid.Parent = dog
+        
+        -- Set the walk speed of the dog humanoid
+        newHumanoid.WalkSpeed = walkSpeed

@@ -1,0 +1,52 @@
+Ball glove
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local localPlayer = Players.LocalPlayer
+local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local touchedEvent = ReplicatedStorage:WaitForChild("TouchedEvent")
+local slapEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+local ballEvent = ReplicatedStorage:WaitForChild("BallEvent")
+
+local cooldown = false
+
+local function slap(hit)
+    local hitHumanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
+    if hitHumanoid then
+        slapEvent:FireServer(hitHumanoid)
+    end
+end
+
+local function ball(hit)
+    local hitHumanoid = hit.Parent:FindFirstChildOfClass("Humanoid")
+    if hitHumanoid then
+        ballEvent:FireServer(hitHumanoid)
+    end
+end
+
+local function onTouched(hit)
+    local part = hit.Parent
+    if part:FindFirstChild("Humanoid") then
+        slap(hit)
+    end
+end
+
+local function onKeyPress(key)
+    if key == "e" and not cooldown then
+        local ball = Instance.new("Part")
+        ball.Anchored = true
+        ball.CanCollide = true
+        ball.Size = Vector3.new(20, 20, 20)
+        ball.CFrame = CFrame.new(character.Head.Position)
+        ball.Touched:Connect(ball)
+        cooldown = true
+        wait(30)
+        cooldown = false
+    end
+end
+
+humanoid.Touched:Connect(onTouched)
+game:GetService("UserInputService").InputBegan:Connect(onKeyPress)

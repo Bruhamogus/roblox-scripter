@@ -1,0 +1,80 @@
+Infinity bubble glove
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local ragdoll = Instance.new("BindableFunction")
+ragdoll.Parent = ReplicatedStorage
+
+local debounce = false
+local debounceTime = 10
+
+local function handleSlap()
+    local mouse = player:GetMouse()
+    local target = mouse.Target
+    if target and target:IsA("Humanoid") then
+        ragdoll:Fire(target)
+    end
+end
+
+local function handleRagdoll(hit)
+    local character = hit.Parent
+    local humanoid = character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        local torso = character:FindFirstChild("HumanoidRootPart")
+        if torso then
+            local force = Vector3.new(0, 50, 0)
+            torso.CFrame = CFrame.new(torso.Position + force) + Vector3.new(0, 4, 0)
+            humanoid.PlatformStand = true
+            RunService.Heartbeat:Wait()
+            humanoid.PlatformStand = false
+            humanoid.Jump = true
+            debounce = true
+            wait(debounceTime)
+            debounce = false
+        end
+    end
+end
+
+ragdoll.OnServerInvoke = handleRagdoll
+
+local bubble = Instance.new("Part")
+bubble.Name = "Bubble"
+bubble.Transparency = 0.8
+bubble.Anchored = true
+bubble.CanCollide = false
+bubble.BrickColor = BrickColor.White()
+bubble.Shape = Enum.PartType.Sphere
+bubble.Parent = character
+
+local function handleBubble()
+    if debounce then return end
+    local torso = character:FindFirstChild("HumanoidRootPart")
+    if torso then
+        local force = torso.CFrame.lookVector * 50
+        bubble.CFrame = CFrame.new(torso.Position + force)
+        bubble.Touched:Connect(function(hit)
+            if hit:IsA("Humanoid") then
+                ragdoll:Fire(hit.Parent)
+            end
+        end)
+        debounce = true
+        wait(debounceTime)
+        debounce = false
+        bubble.Parent = nil
+    end
+end
+
+player.Chatted:Connect(function(message)
+    if message:lower() == "e" then
+        handleBubble()
+    end
+end)
+
+game:GetService("ContextActionService"):BindAction("slap", handleSlap, false, Enum.KeyCode.E)
+
+

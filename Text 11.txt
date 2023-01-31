@@ -1,0 +1,30 @@
+Brazil glove script
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Random = Random.new()
+
+local function slap(player)
+  local character = player.Character
+  local torso = character:WaitForChild("Torso")
+  local location = torso.Position + Vector3.new(0, 0, 5)
+  
+  local part = Instance.new("Part")
+  part.Parent = character
+  part.Anchored = true
+  part.Size = Vector3.new(0.2, 0.2, 0.2)
+  part.Position = location
+  part.CanCollide = false
+  part.CFrame = CFrame.new(location)
+  
+  part.Touched:Connect(function(hit)
+    if hit.Parent:FindFirstChild("Humanoid") then
+      hit.Parent:MoveTo(Vector3.new(Random.NextNumber(100), Random.NextNumber(100), 0))
+    end
+  end)
+  
+  wait(0.5)
+  part:Destroy()
+end
+
+ReplicatedStorage.SlapEvent.OnServerEvent:Connect(slap)
