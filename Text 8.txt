@@ -1,0 +1,29 @@
+Rainbow glove 
+
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local TouchTransmitter = Instance.new("RemoteEvent")
+TouchTransmitter.Name = "TouchTransmitter"
+TouchTransmitter.Parent = ReplicatedStorage
+
+local function onTouch(hit)
+	local character = hit.Parent
+	if character:FindFirstChild("Humanoid") then
+		TouchTransmitter:FireClient(character.Parent, character)
+	end
+end
+
+local glove = script.Parent
+glove.Touched:Connect(onTouch)
+
+Players.PlayerAdded:Connect(function(player)
+	local character = player.Character or player.CharacterAdded:Wait()
+	local humanoid = character:WaitForChild("Humanoid")
+
+	TouchTransmitter.OnClientEvent:Connect(function(hitCharacter)
+		if hitCharacter == character then
+			character.BodyColors.HeadColor = Color3.fromRGB(math.random(255), math.random(255), math.random(255))
+			humanoid.Health = 0
+		end
+	end)
+end)

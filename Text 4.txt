@@ -1,0 +1,23 @@
+Train charging glove
+
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local rightHand = char:WaitForChild("Right Hand")
+local chargeGlove = Instance.new("Part")
+chargeGlove.Name = "ChargeGlove"
+chargeGlove.Parent = rightHand
+chargeGlove.Size = Vector3.new(1,1,1)
+chargeGlove.BrickColor = BrickColor.new("Bright blue")
+
+local charge = 0
+
+rightHand.Touched:Connect(function(hit)
+  charge = charge + 1
+  if charge >= 10 then
+    charge = 0
+    local hitPlayer = game.Players:GetPlayerFromCharacter(hit.Parent)
+    if hitPlayer then
+      hitPlayer.Character.Humanoid:TakeDamage(10)
+    end
+  end
+end)

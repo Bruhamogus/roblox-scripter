@@ -1,0 +1,71 @@
+Medusa glove
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local Backpack = Player.Backpack
+
+local Slap = Instance.new("Tool")
+Slap.Name = "SlapGlove"
+Slap.Parent = Backpack
+
+local debounce = false
+
+local function onEquipped(mouse)
+	local target = mouse.Target
+	if target and target:IsA("Player") and target ~= Player then
+		local character = target.Character
+		if character then
+			local torso = character:WaitForChild("Torso")
+			local hit = torso.CFrame * CFrame.new(0, torso.Size.Y/2, 0)
+			local force = (hit - mouse.Hit.p).unit * 100
+			debounce = true
+			torso.Anchored = true
+			RunService.Heartbeat:Wait()
+			torso.Anchored = false
+			torso.Velocity = force
+			Humanoid:TakeDamage(20)
+		end
+	end
+end
+
+Slap.Equipped:Connect(onEquipped)
+
+local function onUnequipped()
+	debounce = false
+end
+
+Slap.Unequipped:Connect(onUnequipped)
+
+local cooldown = false
+
+local function onInputBegan(input)
+	if input.KeyCode == Enum.KeyCode.E and not debounce and not cooldown then
+		local mouse = Player:GetMouse()
+		local target = mouse.Target
+		if target and target:IsA("Player") and target ~= Player then
+			local character = target.Character
+			if character then
+				local humanoid = character:FindFirstChild("Humanoid")
+				if humanoid and humanoid.Health > 0 then
+					cooldown = true
+					local stone = Instance.new("Model")
+					stone.Parent = workspace
+					for _, part in pairs(character:GetDescendants()) do
+						if part:IsA("BasePart") then
+							part.Parent = stone
+						end
+					end
+					humanoid:TakeDamage(100)
+					wait(30)
+					cooldown = false
+				end
+			end
+		end
+	end
+end
+
+Player.InputBegan:Connect(onInputBegan)

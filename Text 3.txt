@@ -1,0 +1,31 @@
+Meme glove
+
+local player = game.Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local rightHand = char:WaitForChild("Right Hand")
+local memeGlove = Instance.new("Part")
+memeGlove.Name = "MemeGlove"
+memeGlove.Parent = rightHand
+memeGlove.Size = Vector3.new(1,1,1)
+memeGlove.BrickColor = BrickColor.new("Bright green")
+
+local sound = Instance.new("Sound")
+sound.SoundId = "rbxassetid://5044897021"
+sound.Parent = rightHand
+
+rightHand.Touched:Connect(function(hit)
+  local hitPlayer = game.Players:GetPlayerFromCharacter(hit.Parent)
+  if hitPlayer then
+    sound:Play()
+    local hitHumanoid = hitPlayer.Character.Humanoid
+    hitHumanoid.PlatformStand = true
+    local hitDirection = (hitHumanoid.RootPart.Position - rightHand.Position).unit
+    local ragdoll = Instance.new("BodyForce")
+    ragdoll.Force = Vector3.new(hitDirection.x, hitDirection.y + 5, hitDirection.z) * 100
+    ragdoll.Parent = hitHumanoid.RootPart
+    wait(0.5)
+    ragdoll.Parent = nil
+    hitHumanoid.PlatformStand = false
+    hitHumanoid.Jump = true
+  end
+end)

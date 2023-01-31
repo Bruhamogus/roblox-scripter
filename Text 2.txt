@@ -1,0 +1,40 @@
+Killstreak glove
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local hum = character.Humanoid
+local rootPart = character.HumanoidRootPart
+local flyDirection = Vector3.new(0, 0, 2) -- direction of the fly after being slapped
+local flyTime = 2 -- time it takes for the player to stand up again
+local slapDistance = 0.2 -- distance increase after each kill
+local kills = 0 -- total number of kills
+
+local function onTouched(hit)
+  local character = hit.Parent
+  if not character or character == player.Character then return end
+  local hum = character.Humanoid
+  if not hum then return end
+
+  -- put the hit character in ragdoll mode
+  hum.PlatformStand = true
+  hum.Health = 0
+
+  -- make the character fly away
+  local bodyPosition = hum.Torso.CFrame
+  local direction = (bodyPosition.p - rootPart.Position).unit
+  local distance = slapDistance + kills * slapDistance
+  local flyCFrame = bodyPosition + direction * distance
+
+  -- apply velocity to the character's HumanoidRootPart
+  hum.RootPart.Velocity = flyDirection * 50
+
+  -- wait for a specified time before the player can stand up again
+  wait(flyTime)
+  hum.Health = 100
+  hum.PlatformStand = false
+
+  -- increment the number of kills
+  kills = kills + 1
+end
+
+rootPart.Touched:Connect(onTouched)
