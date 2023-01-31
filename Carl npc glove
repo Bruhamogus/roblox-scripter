@@ -1,0 +1,72 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local GLOVE_SLAP_DISTANCE = 7
+local NPC_FOLLOW_DURATION = 5
+local NPC_SHOOT_DAMAGE = 100
+local NPC_COOLDOWN = 40
+
+local LocalPlayer = Players.LocalPlayer
+local mouse = LocalPlayer:GetMouse()
+
+local glove = script.Parent
+
+local npcModel = Instance.new("Model")
+npcModel.Name = "NPC"
+
+local npcHead = Instance.new("Part")
+npcHead.Name = "Head"
+npcHead.Size = Vector3.new(2, 2, 2)
+npcHead.BrickColor = BrickColor.new("Light brown")
+npcHead.Parent = npcModel
+
+local npcLeftArm = Instance.new("Part")
+npcLeftArm.Name = "LeftArm"
+npcLeftArm.Size = Vector3.new(1, 2, 1)
+npcLeftArm.BrickColor = BrickColor.new("Light brown")
+npcLeftArm.Parent = npcModel
+
+local npcRightArm = Instance.new("Part")
+npcRightArm.Name = "RightArm"
+npcRightArm.Size = Vector3.new(1, 2, 1)
+npcRightArm.BrickColor = BrickColor.new("Light brown")
+npcRightArm.Parent = npcModel
+
+local npcLeftLeg = Instance.new("Part")
+npcLeftLeg.Name = "LeftLeg"
+npcLeftLeg.Size = Vector3.new(1, 2, 1)
+npcLeftLeg.BrickColor = BrickColor.new("Light brown")
+npcLeftLeg.Parent = npcModel
+
+local npcRightLeg = Instance.new("Part")
+npcRightLeg.Name = "RightLeg"
+npcRightLeg.Size = Vector3.new(1, 2, 1)
+npcRightLeg.BrickColor = BrickColor.new("Light brown")
+npcRightLeg.Parent = npcModel
+
+local npcTorso = Instance.new("Part")
+npcTorso.Name = "Torso"
+npcTorso.Size = Vector3.new(2, 2, 1)
+npcTorso.BrickColor = BrickColor.new("Brown")
+npcTorso.Parent = npcModel
+
+local npcStaringFace = Instance.new("Decal")
+npcStaringFace.Parent = npcHead
+
+local npcGun = Instance.new("Part")
+npcGun.Name = "Gun"
+npcGun.Size = Vector3.new(1, 1, 2)
+npcGun.Parent = npcLeftArm
+
+local cooldown = false
+
+glove.Touched:Connect(function(hit)
+	if hit.Parent and hit.Parent:FindFirstChild("Humanoid") then
+		local targetHumanoid = hit.Parent:FindFirstChild("Humanoid")
+		targetHumanoid:TakeDamage(GLOVE_SLAP_DISTANCE)
+		targetHumanoid.Health = 0
+	end
+end)
+
+mouse.Button1Down:Connect(function()
+	if cooldown then
