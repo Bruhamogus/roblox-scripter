@@ -1,0 +1,25 @@
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:wait()
+local rightHand = character:WaitForChild("Right Hand")
+
+
+local demonGlove = Instance.new("Part")
+demonGlove.Name = "DemonGlove"
+demonGlove.Size = Vector3.new(0.5,0.5,0.5)
+demonGlove.Position = rightHand.Position
+demonGlove.Parent = character
+
+
+local slapScript = Instance.new("Script")
+slapScript.Parent = demonGlove
+slapScript.Source = [[
+	function onTouched(hit)
+		local humanoid = hit.Parent:FindFirstChild("Humanoid")
+		if humanoid then
+			humanoid:TakeDamage(20)
+		end
+	end
+	
+	script.Parent.Touched:Connect(onTouched)
+]]
