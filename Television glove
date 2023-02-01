@@ -1,0 +1,81 @@
+-- Variables for the slap
+local slapPart = Instance.new("Part")
+local slapForce = Instance.new("BodyForce")
+
+-- Variables for the television
+local television = Instance.new("Part")
+local televisionScript = Instance.new("Script")
+local frozen = Instance.new("BoolValue")
+local freezeTime = 3
+local damage = 100
+
+-- Variables for the badge
+local badge = Instance.new("BadgeService")
+local badgeScript = Instance.new("Script")
+local viewerCount = 0
+local maxViewers = 10
+
+-- Function to slap a player
+function slap(player)
+  local character = player.Character
+  if character then
+    -- Attach slap part and force to character's torso
+    slapPart.Parent = character.Torso
+    slapPart.Anchored = false
+    slapForce.Parent = slapPart
+    slapForce.Name = "SlapForce"
+    slapForce.Force = Vector3.new(0, 0, -100)
+
+    -- Remove slap part and force after 2.3 seconds
+    wait(2.3)
+    slapPart:Destroy()
+    slapForce:Destroy()
+  end
+end
+
+-- Function to freeze player
+function freeze(player)
+  local character = player.Character
+  if character then
+    -- Set frozen value to true
+    frozen.Value = true
+    character.Archivable = false
+
+    -- Apply grey color and wait for freeze time
+    character.Head.BrickColor = BrickColor.new("Really black")
+    character.Torso.BrickColor = BrickColor.new("Really black")
+    character.LeftArm.BrickColor = BrickColor.new("Really black")
+    character.RightArm.BrickColor = BrickColor.new("Really black")
+    character.LeftLeg.BrickColor = BrickColor.new("Really black")
+    character.RightLeg.BrickColor = BrickColor.new("Really black")
+    wait(freezeTime)
+
+    -- Damage player and respawn
+    player.Character.Humanoid.Health = player.Character.Humanoid.Health - damage
+    player:LoadCharacter()
+
+    -- Set frozen value to false
+    frozen.Value = false
+  end
+end
+
+-- Function to spawn television
+function spawnTelevision()
+  television.Parent = game.Workspace
+  television.Position = game.Players.LocalPlayer.Character.Head.Position + Vector3.new(0, 2, 0)
+  television.Anchored = true
+
+  -- Attach script to television to freeze players who look at it
+  televisionScript.Parent = television
+  televisionScript.Source = "script.Parent.Touched:Connect(function(hit)\n    if hit.Parent:FindFirstChild(\"Humanoid\") and hit.Parent.Name ~= game.Players.LocalPlayer.Name then\n        freeze(hit.Parent.Parent)\n    end\nend)"
+end
+
+-- Function to count viewers
+function countViewers()
+  -- Increment viewer count
+  viewerCount = viewerCount + 1
+
+  -- Check if max viewers have been reached
+  if viewerCount >= maxViewers then
+    -- Award badge to player with glove
+    badge:AwardBadge(game.Players.LocalPlayer.userId,
