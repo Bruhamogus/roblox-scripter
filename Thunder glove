@@ -1,0 +1,22 @@
+local ThunderGlove = script.Parent
+local Players = game:GetService("Players")
+
+local explosionRadius = 3.5
+local ragdollForce = Vector3.new(0, 0, 50)
+local ragdollDuration = 4
+
+ThunderGlove.Activated:Connect(function(playerWhoActivated)
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= playerWhoActivated then
+            local character = player.Character
+            if character and (player.Character.PrimaryPart.Position - ThunderGlove.Position).magnitude <= explosionRadius then
+                character.Humanoid.PlatformStand = true
+                character.Humanoid.JumpPower = 0
+                character.Humanoid:AddForce(ragdollForce)
+                wait(ragdollDuration)
+                character.Humanoid.PlatformStand = false
+                character.Humanoid.JumpPower = 50
+            end
+        end
+    end
+end)
