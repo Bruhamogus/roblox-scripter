@@ -1,0 +1,75 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local Tool = Instance.new("Tool")
+Tool.Name = "SlapGlove"
+Tool.Parent = LocalPlayer.Backpack
+
+local Slap = Instance.new("Part")
+Slap.Name = "SlapPart"
+Slap.Size = Vector3.new(4, 4, 4)
+Slap.Anchored = true
+Slap.CanCollide = false
+Slap.Parent = Tool
+
+local SlapSound = Instance.new("Sound")
+SlapSound.SoundId = "rbxassetid://127145888"
+SlapSound.Parent = Slap
+
+local Radius = Instance.new("Part")
+Radius.Name = "RadiusPart"
+Radius.Size = Vector3.new(8, 0.1, 8)
+Radius.Anchored = true
+Radius.CanCollide = false
+Radius.Transparency = 0.5
+Radius.Parent = Tool
+
+local RadiusEffect = Instance.new("ParticleEmitter")
+RadiusEffect.Name = "RadiusEffect"
+RadiusEffect.Size = 4
+RadiusEffect.Rate = 40
+RadiusEffect.Parent = Radius
+
+local Ability = Instance.new("RemoteFunction")
+Ability.Name = "SlapAbility"
+Ability.Parent = ReplicatedStorage
+
+local SlapCD = 45
+
+local function SlapPlayer(player)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    local rootPart = character:WaitForChild("HumanoidRootPart")
+    local pos = rootPart.Position
+    local dir = (pos - Slap.Position).unit
+    local force = dir * 80 + Vector3.new(0, 40, 0)
+    rootPart.CFrame = CFrame.new(pos, pos + dir)
+    humanoid:AddForce(force)
+    humanoid.PlatformStand = true
+    SlapSound:Play()
+    wait(2)
+    humanoid.PlatformStand = false
+end
+
+local function RadiusDamage(player)
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:WaitForChild("Humanoid")
+    repeat
+        wait(2)
+        humanoid.Health = humanoid.Health - 20
+    until not Radius:IsDescendantOf(Tool)
+end
+
+local function OnButtonPressed()
+    if SlapCD > 0 then return end
+    Radius.CFrame = Slap.CFrame
+    RadiusEffect.Enabled = true
+    for _, player in pairs(Players:GetPlayers()) do
+        if player.Character and player ~= LocalPlayer and (player.Character.HumanoidRootPart.Position - Slap.Position).magnitude <= 4 then
+            if player.Character:FindFirstChild("Humanoid") then
+                local humanoid = player.Character.Humanoid
+                humanoid.PlatformStand = true
+                local conn = humanoid.Died:Connect(function() RadiusEffect.Enabled = false end)
+                RadiusDamage(player)
