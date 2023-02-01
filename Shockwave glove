@@ -1,0 +1,27 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shockwave = ReplicatedStorage:WaitForChild("Shockwave")
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        local rightHand = character:WaitForChild("Right Hand")
+        local shockwavePart = Instance.new("Part")
+        shockwavePart.Size = Vector3.new(1, 1, 1)
+        shockwavePart.Anchored = true
+        shockwavePart.CanCollide = false
+        shockwavePart.Parent = character
+        shockwavePart.CFrame = rightHand.CFrame * CFrame.new(0, 0, -0.5)
+        
+        rightHand.Touched:Connect(function(hit)
+            local humanoid = hit.Parent:FindFirstChild("Humanoid")
+            if humanoid then
+                local shockwave = Shockwave:Clone()
+                shockwave.Parent = shockwavePart
+                shockwave.Enabled = true
+                shockwave.CFrame = shockwavePart.CFrame
+                wait(1)
+                shockwave:Destroy()
+            end
+        end)
+    end)
+end)
