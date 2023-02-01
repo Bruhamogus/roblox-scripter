@@ -1,0 +1,15 @@
+players = [] # list to store players
+
+while True:
+    # wait for a player to initiate a slap
+    slapped_player = wait_for_slap()
+
+    # switch the character of the slapped player
+    switch_character(slapped_player)
+
+    # check if the slapped player is still alive
+    if not is_alive(slapped_player):
+        players.remove(slapped_player) # remove dead player from list
+    else:
+        # update list of players with the slapped player
+        players.append(slapped_player)
