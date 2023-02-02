@@ -1,0 +1,72 @@
+local players = game:GetService("Players")
+local localPlayer = players.LocalPlayer
+
+local greenScreenOn = false
+local cooldown = false
+
+local function slap(hit)
+    local character = hit.Parent
+    local head = character.Head
+    local humanoid = character.Humanoid
+    local ragdoll = humanoid.Ragdoll
+    
+    local point = Instance.new("Part")
+    point.Size = Vector3.new(1,1,1)
+    point.Anchored = true
+    point.CanCollide = false
+    point.Parent = character
+    point.CFrame = head.CFrame * CFrame.new(0, 0, 5)
+    point.BrickColor = BrickColor.Red()
+    
+    if greenScreenOn and point:IsDescendantOf(localPlayer.Character) then
+        ragdoll.Anchored = false
+        ragdoll:ApplyForce(CFrame.new(head.Position, ragdoll.Head.Position).lookVector * 12)
+        wait(2.4)
+        ragdoll.Anchored = true
+        point:Destroy()
+    else
+        ragdoll.Anchored = false
+        ragdoll:ApplyForce(CFrame.new(head.Position, ragdoll.Head.Position).lookVector * 6)
+        wait(2)
+        ragdoll.Anchored = true
+    end
+end
+
+local function onKeyDown(input)
+    if input.KeyCode == Enum.KeyCode.E and not cooldown then
+        greenScreenOn = true
+        localPlayer.Character.Humanoid.Died:connect(function()
+            greenScreenOn = false
+        end)
+        
+        for _, player in pairs(players:GetPlayers()) do
+            if player ~= localPlayer then
+                local character = player.Character
+                if character then
+                    local head = character.Head
+                    local humanoid = character.Humanoid
+                    
+                    humanoid.Died:connect(function()
+                        head.Transparency = 1
+                    end)
+                    
+                    head.Transparency = 0.7
+                    head.Shape = "Ball"
+                    head.CanCollide = false
+                end
+            end
+        end
+        
+        cooldown = true
+        wait(50)
+        cooldown = false
+    end
+end
+
+localPlayer.Character.Humanoid.Died:connect(function()
+    greenScreenOn = false
+end)
+
+localPlayer.Character.HumanoidRootPart.Touched:connect(slap)
+
+game:GetService("UserInputService").InputBegan:connect(onKeyDown)
