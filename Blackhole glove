@@ -1,0 +1,72 @@
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local Tools = Character:WaitForChild("Backpack"):WaitForChild("Tools")
+
+-- Slap function
+local function slap(hit)
+    local victim = hit.Parent:FindFirstChild("Humanoid")
+    if victim then
+        local rootPart = hit.Parent:FindFirstChild("HumanoidRootPart")
+        local victimTorso = hit.Parent:FindFirstChild("Torso")
+        if rootPart and victimTorso then
+            local direction = (rootPart.Position - Character.HumanoidRootPart.Position).unit
+            victim.PlatformStand = true
+            victim.Jump = true
+            rootPart.CFrame = rootPart.CFrame + direction * 5
+            wait(2)
+            victim.PlatformStand = false
+        end
+    end
+end
+
+-- Black hole function
+local function blackHole()
+    -- Cube and circle
+    local cube = Instance.new("Part")
+    cube.Anchored = true
+    cube.Size = Vector3.new(24, 24, 24)
+    cube.BrickColor = BrickColor.new("Black")
+    cube.CFrame = CFrame.new(Character.HumanoidRootPart.Position + Vector3.new(0, 6, 0))
+    cube.Parent = workspace
+
+    local circle = Instance.new("Part")
+    circle.Anchored = true
+    circle.Size = Vector3.new(39, 0.1, 39)
+    circle.BrickColor = BrickColor.new("Dark yellow")
+    circle.CFrame = cube.CFrame
+    circle.Parent = workspace
+    circle.Material = Enum.Material.Neon
+
+    -- Sound
+    local sound = Instance.new("Sound")
+    sound.SoundId = "rbxassetid://126554626"
+    sound.Volume = 0.8
+    sound.Parent = cube
+
+    -- Animation
+    while wait() do
+        circle.CFrame = circle.CFrame * CFrame.Angles(math.rad(1), 0, 0)
+    end
+
+    -- Teleport
+    local players = Players:GetPlayers()
+    for i = 1, #players do
+        local player = players[i]
+        local character = player.Character
+        if character and player ~= LocalPlayer then
+            local rootPart = character:FindFirstChild("HumanoidRootPart")
+            if rootPart and (rootPart.Position - cube.Position).magnitude <= 18 then
+                rootPart.CFrame = CFrame.new(9999999, 9999999, 9999999)
+
+                -- Particles
+                local particles = Instance.new("ParticleEmitter")
+                particles.Parent = rootPart
+                particles.Texture = "rbxassetid://303770863"
+                particles.Color = ColorSequence.new(Color3.new(0, 0, 0))
+                particles.LightEmission = 1
+                particles.Size = NumberSequence.new(5)
+                particles.Speed = NumberSequence.new(10)
+                particles.Enabled = true
+                wait(0.5
