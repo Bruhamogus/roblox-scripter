@@ -1,0 +1,26 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TouchTransmitter = ReplicatedStorage:WaitForChild("TouchTransmitter")
+
+local function onTouched(otherPart)
+    local character = otherPart.Parent
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid and humanoid.Health > 0 then
+        local origin = character.PrimaryPart.Position
+        local current = TouchTransmitter.Touched:InvokeServer(character)
+        if current then
+            humanoid:AddForce((origin - current.Position).Unit * 50)
+            humanoid.PlatformStand = true
+            wait(2)
+            humanoid.PlatformStand = false
+        end
+    end
+end
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rightHand = character:WaitForChild("Right Hand")
+local leftHand = character:WaitForChild("Left Hand")
+
+rightHand.Touched:Connect(onTouched)
+leftHand.Touched:Connect(onTouched)
