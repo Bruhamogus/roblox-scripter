@@ -1,0 +1,17 @@
+local ventGlove = script.Parent
+
+ventGlove.Touched:Connect(function(hit)
+	local character = hit.Parent
+	local humanoid = character:FindFirstChild("Humanoid")
+	
+	if humanoid then
+		humanoid:TakeDamage(50)
+		
+		local force = Instance.new("BodyForce")
+		force.Name = "VentGloveForce"
+		force.force = Vector3.new(0, 500, 0)
+		force.Parent = character.HumanoidRootPart
+		
+		game:GetService("Debris"):AddItem(force, 0.5)
+	end
+end)
