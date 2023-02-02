@@ -1,0 +1,70 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+local cooldown = false
+
+local function disappearPlayer(target)
+	local character = target.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid.Health = 0
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			-- play the PS2 sound here
+			local sound = Instance.new("Sound",rootPart)
+			sound.SoundId = "rbxassetid://5973351214" -- replace with the actual ID of the PS2 sound
+			sound:Play()
+			
+			for i = 1, 5 do
+				rootPart.Transparency = rootPart.Transparency + 0.2
+				wait(1)
+			end
+			target:LoadCharacter()
+		end
+	end
+end
+
+mouse.KeyDown:Connect(function(key)
+	if key == "e" then
+		if cooldown then
+			return
+		end
+		local closestPlayer = Players:GetClosestPlayer(player.Character.Head.Position)
+		if closestPlayer and (closestPlayer.Character.Head.Position - player.Character.Head.Position).magnitude <= 10 then
+			disappearPlayer(closestPlayer)
+			cooldown = true
+			wait(20)
+			cooldown = false
+		end
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+		end
+
+		wait(2)
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
