@@ -1,0 +1,53 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local PhysicsService = game:GetService("PhysicsService")
+local CharacterAdded = Players.CharacterAdded
+
+local player = Players.LocalPlayer
+
+local function onCharacterAdded(player)
+	local character = player.Character
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	
+	local part = Instance.new("Part")
+	part.Parent = character
+	part.Anchored = true
+	part.CanCollide = true
+	part.Locked = true
+	part.Size = Vector3.new(3,3,3)
+	
+	local hitbox = Instance.new("BoxHandleAdornment")
+	hitbox.Parent = part
+	hitbox.Adornee = part
+	hitbox.Size = part.Size
+	hitbox.ZIndex = 2
+	
+	local function onTouched(hit)
+		if hit.Parent:FindFirstChild("Humanoid") then
+			local humanoid = hit.Parent.Humanoid
+			humanoid.PlatformStand = true
+			hit.Parent:FindFirstChildOfClass("HumanoidRootPart").CFrame = CFrame.new(hit.Parent.HumanoidRootPart.Position - Vector3.new(0, 0, 10))
+		end
+	end
+	
+	hitbox.Touched:Connect(onTouched)
+	
+	game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+		if input.KeyCode == Enum.KeyCode.E then
+			local random = math.random(1, 3)
+			if random == 1 then
+				part.BrickColor = BrickColor.new("Bright green")
+			elseif random == 2 then
+				part.BrickColor = BrickColor.new("Light blue")
+			else
+				part.BrickColor = BrickColor.new("Really light grey")
+			end
+			part.Anchored = false
+			part.CFrame = player.Character.Head.CFrame
+			part.Anchored = true
+			part.Locked = true
+		end
+	end)
+end
+
+CharacterAdded:Connect(onCharacterAdded)
