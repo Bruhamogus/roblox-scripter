@@ -1,0 +1,61 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SoundService = game:GetService("SoundService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	if target and target:IsA("Player") then
+		slap(target)
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+		end
+
+		local chance = math.random(1, 100)
+		if chance <= 30 then
+			local block = Instance.new("Part")
+			block.Size = Vector3.new(4, 200, 4)
+			block.Anchored = true
+			block.Transparency = 0.6
+			block.CanCollide = false
+			block.Parent = game.Workspace
+			block.CFrame = CFrame.new(hit.Hit.p)
+			
+			local sound = Instance.new("Sound")
+			sound.SoundId = "rbxassetid://1423131951"
+			sound.Volume = 0.2
+			sound.Pitch = 0.2
+			sound.Echo = true
+			sound.Parent = SoundService
+			sound:Play()
+			wait(6)
+			sound:Stop()
+		end
+
+		wait(2)
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
