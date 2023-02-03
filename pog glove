@@ -1,0 +1,82 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local cooldown = false
+
+local function slap(hit)
+	if cooldown then return end
+	remoteEvent:FireServer(hit)
+	cooldown = true
+	wait(120)
+	cooldown = false
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	if target and target:IsA("Player") then
+		slap(target)
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+		end
+
+		wait(2)
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local function onKeyPress(inputObject)
+	if inputObject.KeyCode == Enum.KeyCode.E then
+		if cooldown then return end
+		cooldown = true
+		wait(120)
+		cooldown = false
+
+		local randomMemeCatFace = script.RandomMemeCatFace:Clone()
+		randomMemeCatFace.Parent = player.PlayerGui
+
+		local meowSound = script.MeowSound:Clone()
+		meowSound.Parent = randomMemeCatFace
+
+		local nearestPlayer = player:GetClosestPlayer()
+		randomMemeCatFace.FollowClosestPlayer = nearestPlayer
+		randomMemeCatFace.Speed = 20
+
+		local function onTouched(hit)
+			if hit.Parent and hit.Parent:FindFirstChild("Humanoid") then
+				local memeScreamSound = script.MemeScreamSound:Clone()
+				memeScreamSound.Parent = randomMemeCatFace
+				memeScreamSound.Echo = 4
+
+				hit.Parent.Humanoid:TakeDamage(100)
+
+				randomMemeCatFace.Speed = randomMemeCatFace.Speed + 0.75
+
+				if randomMemeCatFace.TargetsHit == 5 then
+					randomMemeCatFace.Size = randomMemeCatFace.Size + 2
+				end
+
+				if randomMemeCatFace.TargetsHit == 50 then
+	
