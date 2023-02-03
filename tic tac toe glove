@@ -1,0 +1,87 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+local rightHand = character:WaitForChild("Right Hand")
+local debounce = false
+
+local board = {
+    {" ", " ", " "},
+    {" ", " ", " "},
+    {" ", " ", " "}
+}
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function printBoard()
+    for i, row in ipairs(board) do
+        print(table.concat(row, " | "))
+        if i < 3 then
+            print("---------")
+        end
+    end
+end
+
+local function slap(hit)
+    remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+    local target = mouse.Target
+    if target and target:IsA("Player") then
+        slap(target)
+    end
+end)
+
+rightHand.Touched:Connect(function(hit)
+    if debounce then return end
+    local touchedPart = hit.Parent:FindFirstChild("TicTacToe")
+    if touchedPart then
+        local x, y, z = touchedPart.Position.X, touchedPart.Position.Y, touchedPart.Position.Z
+        local row, col
+        if x == 1 then
+            col = 1
+        elseif x == 0 then
+            col = 2
+        else
+            col = 3
+        end
+        if z == 1 then
+            row = 1
+        elseif z == 0 then
+            row = 2
+        else
+            row = 3
+        end
+        if board[row][col] == " " then
+            board[row][col] = "X"
+            touchedPart.BrickColor = BrickColor.new("Bright green")
+            debounce = true
+            wait(1)
+            debounce = false
+        end
+        printBoard()
+    end
+end)
+
+local function onSlapped(player, hit)
+    local character = player.Character
+    if character then
+        local humanoid = character:WaitForChild("Humanoid")
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        if rootPart then
+            rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+        end
+
+        wait(2)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+    end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
