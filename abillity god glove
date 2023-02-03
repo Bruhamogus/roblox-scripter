@@ -1,0 +1,90 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local SoundService = game:GetService("SoundService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+local abilityEvent = ReplicatedStorage:WaitForChild("AbilityEvent")
+
+-- Ability 1: Shoot Fireballs
+local function shootFireball(target)
+	abilityEvent:FireServer(target, "fireball")
+end
+
+-- Ability 2: Teleport
+local function teleport(target)
+	abilityEvent:FireServer(target, "teleport")
+end
+
+-- Ability 3: Summon a Lightning Strike
+local function summonLightning(target)
+	abilityEvent:FireServer(target, "lightning")
+end
+
+-- Ability 4: Shoot Ice Shards
+local function shootIceShard(target)
+	abilityEvent:FireServer(target, "iceShard")
+end
+
+-- Ability 5: Shoot a Gravity Blast
+local function shootGravityBlast(target)
+	abilityEvent:FireServer(target, "gravityBlast")
+end
+
+-- Ability 6: Invisibility
+local function turnInvisible()
+	abilityEvent:FireServer("invisible")
+end
+
+-- Ability 7: Super Strength
+local function activateSuperStrength()
+	abilityEvent:FireServer("superStrength")
+end
+
+-- Ability 8: Heal
+local function heal()
+	abilityEvent:FireServer("heal")
+end
+
+-- Ability 9: Time Slow
+local function timeSlow()
+	abilityEvent:FireServer("timeSlow")
+end
+
+-- Ability 10: Summon a Tornado
+local function summonTornado(target)
+	abilityEvent:FireServer(target, "tornado")
+end
+
+-- Bind abilities to keyboard keys
+local function bindKeys()
+	local pressed = {}
+	
+	game:GetService("UserInputService").InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.Keyboard then
+			pressed[input.KeyCode.Name] = true
+			
+			if pressed["q"] and pressed["w"] then
+				shootFireball(mouse.Target)
+			elseif pressed["w"] and pressed["e"] then
+				teleport(mouse.Target)
+			elseif pressed["e"] and pressed["r"] then
+				summonLightning(mouse.Target)
+			elseif pressed["r"] and pressed["t"] then
+				shootIceShard(mouse.Target)
+			elseif pressed["t"] and pressed["y"] then
+				shootGravityBlast(mouse.Target)
+			elseif pressed["u"] then
+				turnInvisible()
+			elseif pressed["i"] then
+				activateSuperStrength()
+			elseif pressed["o"] then
+				heal()
+			elseif pressed["p"] then
+				timeSlow()
+			elseif pressed["
