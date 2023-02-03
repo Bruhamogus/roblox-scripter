@@ -1,0 +1,38 @@
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rightHand = character:WaitForChild("Right Hand")
+local debounce = false
+
+rightHand.Touched:Connect(function(hit)
+    if debounce then return end
+    local humanoidRootPart = hit.Parent:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        local hitPlayer = game.Players:GetPlayerFromCharacter(hit.Parent)
+        if hitPlayer and hitPlayer ~= player then
+            hitPlayer.Character.HumanoidRootPart.CFrame = hitPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, -5)
+            hitPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Ragdoll)
+            wait(2)
+            hitPlayer.Character.Humanoid:UnequipTools()
+            hitPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+        end
+    end
+end)
+
+game:GetService("UserInputService").InputBegan:Connect(function(input, processed)
+    if input.KeyCode == Enum.KeyCode.E and not debounce then
+        local touchedPart = rightHand.Touched:Wait()
+        if touchedPart then
+            debounce = true
+            player.Character.HumanoidRootPart.CFrame = touchedPart.CFrame
+            player.Character.Humanoid.JumpPower = 1.2222
+            player.Character.Humanoid.Health = 0
+            for i = 1, 4 do
+                game.Workspace.SoundService:PlayLocalSound(game.ServerStorage.BoostSound, 10)
+                wait(0.5)
+            end
+            wait(30)
+            debounce = false
+        end
+    end
+end)
