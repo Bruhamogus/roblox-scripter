@@ -1,0 +1,86 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local player = LocalPlayer
+local UserInputService = game:GetService("UserInputService")
+local runService = game:GetService("RunService")
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local blockImageId = 8073107254
+local blockSpeed = 300
+local damageAmount = 100
+local killGoal = 100
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local block = Instance.new("Part")
+block.Name = "Block"
+block.Size = Vector3.new(5,5,5)
+block.Anchored = true
+block.CanCollide = true
+block.BrickColor = BrickColor.Grey()
+block.Material = Enum.Material.Metal
+block.Parent = game.Workspace
+
+local image = Instance.new("Decal")
+image.Texture = "rbxassetid://" .. tostring(blockImageId)
+image.Parent = block
+
+local function onTouch(otherPart)
+	local character = otherPart.Parent
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		humanoid:TakeDamage(damageAmount)
+		local player = Players:GetPlayerFromCharacter(character)
+		if player then
+			player.RespawnLocation = character:FindFirstChildOfClass("SpawnLocation")
+		end
+		character.Parent = game.Lighting
+	end
+end
+
+block.Touched:Connect(onTouch)
+
+local function moveBlock(direction)
+	block.CFrame = block.CFrame + direction * blockSpeed * runService.Heartbeat:Wait()
+end
+
+UserInputService.InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.E then
+		local camera = workspace.CurrentCamera
+		local direction = (camera.CoordinateFrame.LookVector * Vector3.new(1,0,1)).Unit
+		local task = runService.Stepped:Connect(function()
+			moveBlock(direction)
+		end)
+		spawn(function()
+			runService.Heartbeat:Wait()
+			task:Disconnect()
+		end)
+	end
+end)
+
+local badgeService = game:GetService("BadgeService")
+local badgeId = "CustomBadge"
+
+local function onKilled(victim)
+	if victim.Parent == LocalPlayer then
+		local kills = LocalPlayer.Data.Kills or 0
+		if kills == killGoal then
+			badgeService:AwardBadge(LocalPlayer.UserId, badgeId)
+		else
+			LocalPlayer.Data.Kills = kills + 1
+		end
+	end
+end
+
+Players.PlayerDied:Connect(onKilled)
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	
