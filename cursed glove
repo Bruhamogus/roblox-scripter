@@ -1,0 +1,60 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	if target and target:IsA("Player") then
+		slap(target)
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		local distance = (character.HumanoidRootPart.Position - hit.HumanoidRootPart.Position).magnitude
+		if distance <= 10 then
+			humanoid:AddImpactVelocity(Vector3.new(0,0,200), 90)
+			humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+			if player ~= hit then
+				local sound = Instance.new("Sound", character)
+				sound.SoundId = "rbxassetid://5058160717"
+				sound.Volume = 0.5
+				sound.PlaybackSpeed = 1.7
+				sound.Echo.Volume = 0.7
+				sound:Play()
+				wait(10)
+				sound:Destroy()
+			end
+		else
+			humanoid:AddImpactVelocity(Vector3.new(0,0,7), 90)
+			humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+			wait(2)
+		end
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
+
+player.Character.Humanoid.Died:Connect(function()
+	for _, otherPlayer in pairs(Players:GetPlayers()) do
+		if (otherPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).magnitude <= 4.555 then
+			local image = Instance.new("ImageLabel", otherPlayer.PlayerGui)
+			image.Image = "rbxassetid://9357873791"
+			wait(7)
+			image:Destroy()
+		end
+	end
+end)
