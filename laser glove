@@ -1,0 +1,75 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	if target and target:IsA("Player") then
+		slap(target)
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+		end
+
+		wait(2)
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
+
+-- Laser ability logic
+local UserInputService = game:GetService("UserInputService")
+
+local laserPart = Instance.new("Part")
+laserPart.Size = Vector3.new(0.455556, 0.455556, 0.455556)
+laserPart.BrickColor = BrickColor.new("Bright red")
+laserPart.Anchored = true
+laserPart.CanCollide = false
+laserPart.Material = Enum.Material.Neon
+
+local laser = Instance.new("PointLight")
+laser.Color = Color3.new(1, 0, 0)
+laser.Range = 10
+laser.Brightness = 5
+laser.Parent = laserPart
+
+local function onKeyDown(inputObject, gameProcessedEvent)
+	if inputObject.KeyCode == Enum.KeyCode.E then
+		laserPart.Parent = character.HumanoidRootPart
+		laserPart.CFrame = character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+		
+		local target = mouse.Target
+		if target and target:IsA("Player") then
+			laserPart:Destroy()
+		end
+	end
+end
+
+UserInputService.InputBegan:Connect(onKeyDown)
+
+game:GetService("Players").PlayerRemoving:Connect(function(player)
+	if player == Players.LocalPlayer then
+		laserPart:Destroy()
+	end
+end)
