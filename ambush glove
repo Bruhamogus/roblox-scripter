@@ -1,0 +1,76 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	if target and target:IsA("Player") then
+		slap(target)
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+		end
+
+		wait(2)
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
+
+local imageId = 10938726677
+local soundId = 5853668794
+
+local particles = Instance.new("ParticleEmitter")
+particles.Texture = "rbxassetid://10938726677"
+particles.Enabled = false
+particles.Color = ColorSequence.new(Color3.new(0,0,0))
+particles.Size = NumberSequence.new(0.1)
+particles.EmissionDirection = "Back"
+particles.Speed = NumberRange.new(5)
+particles.Lifetime = NumberRange.new(1)
+particles.Rate = 100
+particles.Parent = character
+
+local function onKeyPress(input)
+    if input.KeyCode == Enum.KeyCode.E then
+        particles.Enabled = true
+        local targetPlayer = game.Players:GetPlayers()[math.random(1, #game.Players:GetPlayers())]
+        while true do
+            local character = targetPlayer.Character
+            if character then
+                local image = Instance.new("ImageLabel")
+                image.Image = "rbxassetid://10938726677"
+                image.Parent = targetPlayer.PlayerGui
+                image.Size = UDim2.new(1, 0, 1, 0)
+                image.Position = UDim2.new(0, character.HumanoidRootPart.Position.X, 0, character.HumanoidRootPart.Position.Y)
+                wait()
+            end
+
+            local characterTouched = humanoid.TouchedParts:GetChildren()
+            for i = 1, #characterTouched do
+                if characterTouched[i].Parent == targetPlayer.Character then
+                    humanoid:TakeDamage(damage)
+                    sound.Play("rbxassetid://5853668794")
+                    image:Destroy()
+                    particles.Enabled =
