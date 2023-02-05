@@ -1,0 +1,33 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local npc = nil
+
+local function createNpc()
+	npc = character:Clone()
+	npc.Parent = game.Workspace
+	npc.Name = player.Name .. "'s NPC"
+end
+
+local function onChat(message)
+	-- Use OpenAI API to process message
+	local correctedMessage = processMessageWithAI(message)
+
+	if npc then
+		npc.Humanoid.DisplayDistanceType = "None"
+		npc.Humanoid:Say("* " .. correctedMessage)
+	end
+end
+
+game.ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:Connect(onChat)
+
+local function onKeyPress(input)
+	if input.KeyCode == Enum.KeyCode.E and not npc then
+		createNpc()
+	end
+end
+
+game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
