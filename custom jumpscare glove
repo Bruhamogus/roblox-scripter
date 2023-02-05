@@ -1,91 +1,77 @@
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local Sound = ReplicatedStorage:WaitForChild("Sound")
-local Image = ReplicatedStorage:WaitForChild("Image")
+local RunService = game:GetService("RunService")
 
--- GUI
-local Gui = script.Parent.GloveGui
-local TextLabel = Gui.TextLabel
-local TextBox = Gui.TextBox
-local Background = Gui.Background
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
 
--- Variables
-local AbilityActivated = false
-local Cooldown = false
-local ImageId = ""
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+local remoteKnockbackEvent = ReplicatedStorage:WaitForChild("KnockbackEvent")
 
--- Function to play the sound and apply knockback
-local function ApplyKnockback(player)
-  local char = player.Character
-  if char then
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if hum then
-      local sound = Sound:FindFirstChild(tostring(5058160717))
-      sound.Volume = 40
-      sound:Play()
-      hum.PlatformStand = true
-      hum:ChangeState(Enum.HumanoidStateType.Ragdoll)
-      wait(2)
-      hum.PlatformStand = false
-      char:MoveTo(char.HumanoidRootPart.Position - Vector3.new(0, 0, 5))
-    end
-  end
+local function slap(hit)
+	remoteEvent:FireServer(hit)
 end
 
--- Function to display image on knockback
-local function DisplayImage(player)
-  local screenGui = Instance.new("ScreenGui")
-  local imageLabel = Instance.new("ImageLabel")
-  imageLabel.Parent = screenGui
-  imageLabel.BackgroundTransparency = 1
-  imageLabel.Size = UDim2.new(1, 0, 1, 0)
-  imageLabel.Image = Image:FindFirstChild(ImageId).Image
-  screenGui.Parent = player.PlayerGui
-  wait(4)
-  screenGui:Destroy()
+local function knockback(radius, imageId)
+	remoteKnockbackEvent:FireServer(radius, imageId)
 end
 
--- Function to activate the ability
-local function ActivateAbility()
-  if AbilityActivated == false and Cooldown == false then
-    AbilityActivated = true
-    for _, player in pairs(Players:GetPlayers()) do
-      if player ~= LocalPlayer then
-        ApplyKnockback(player)
-        if ImageId == "" or not Image:FindFirstChild(ImageId) then
-          DisplayImage(player)
-        else
-          DisplayImage(player)
-        end
-      end
-    end
-    wait(8)
-    AbilityActivated = false
-    Cooldown = false
-  end
-end
-
--- Keybind to activate the ability
-LocalPlayer.KeyDown:Connect(function(key)
-  if key == "e" then
-    ActivateAbility()
-  end
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	if target and target:IsA("Player") then
+		slap(target)
+	end
 end)
 
--- Function to change the image on the GUI
-TextBox.FocusLost:Connect(function(enterPressed)
-  if enterPressed then
-    ImageId = TextBox.Text
-    TextBox.Text = ""
-  end
+local cooldown = false
+local cooldownTime = 8
+
+local imageId = ""
+local imageIdTextBox = Instance.new("TextBox")
+imageIdTextBox.Position = UDim2.new(0.8, 0, 0.1, 0)
+imageIdTextBox.Size = UDim2.new(0.2, 0, 0.1, 0)
+imageIdTextBox.BackgroundColor3 = Color3.new(1, 0, 0)
+imageIdTextBox.Parent = player.PlayerGui
+
+local airhornId = "8073107254"
+local airhornSound = Instance.new("Sound")
+airhornSound.SoundId = "rbxassetid://" .. airhornId
+airhornSound.Volume = 1
+
+local function onImageIdEntered(text)
+	imageId = text
+end
+
+imageIdTextBox.FocusLost:Connect(function(enterPressed)
+	if enterPressed then
+		onImageIdEntered(imageIdTextBox.Text)
+	end
 end)
 
--- Function to play the airhorn sound and give badge
-TextBox.FocusLost:Connect(function(enterPressed)
-  if ImageId == "8073107254" then
-    local sound = Sound:FindFirstChild(tostring(8073107254))
-    sound.Volume = 1
-    sound:Play()
-    wait(5)
-    sound:Stop
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+		end
+
+		wait(2)
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
+
+local function onKeyPress(inputObject)
+	if inputObject.KeyCode == Enum.KeyCode.E and not cooldown then
+		local playersInRadius = Players:GetPlayersInRadius(character.HumanoidRootPart.Position, 5)
+		local playersToKnockback = {}
+		for _, playerInRadius in ipairs(playersInRadius) do
+			if playerInRadius ~= player then
+				table.insert(playersToKnockback,
