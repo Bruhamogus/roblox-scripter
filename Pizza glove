@@ -1,0 +1,71 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Circle = ReplicatedStorage.Circle
+local Pizza = ReplicatedStorage.Pizza
+
+local localPlayer = Players.LocalPlayer
+
+local pizzaBox = nil
+local pizzaSliceCount = 8
+local cooldown = false
+
+local function onKeyPress(inputObject)
+    if inputObject.KeyCode == Enum.KeyCode.E and not cooldown then
+        local character = localPlayer.Character
+        if character then
+            local torso = character:FindFirstChild("Torso")
+            if torso then
+                local origin = torso.CFrame
+                local newCFrame = origin * CFrame.new(0, 0, 5)
+
+                pizzaBox = Pizza:Clone()
+                pizzaBox.Parent = workspace
+                pizzaBox.CFrame = newCFrame
+
+                local whiteCircle = Circle:Clone()
+                whiteCircle.Parent = pizzaBox
+                whiteCircle.BrickColor = BrickColor.White()
+                whiteCircle.CFrame = pizzaBox.CFrame
+
+                local redCircle = Circle:Clone()
+                redCircle.Parent = pizzaBox
+                redCircle.BrickColor = BrickColor.Red()
+                redCircle.CFrame = pizzaBox.CFrame
+
+                cooldown = true
+                wait(25)
+                cooldown = false
+            end
+        end
+    end
+end
+
+local function onPizzaTouched(part)
+    local character = part.Parent
+    if character then
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid and pizzaSliceCount > 0 then
+            pizzaSliceCount = pizzaSliceCount - 1
+            humanoid.WalkSpeed = humanoid.WalkSpeed * 0.7
+            humanoid.Health = 0
+        end
+
+        if pizzaSliceCount == 0 then
+            pizzaBox:Destroy()
+        end
+    end
+end
+
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function(character)
+        local torso = character:FindFirstChild("Torso")
+        if torso then
+            torso.Touched:Connect(onPizzaTouched)
+        end
+    end)
+end)
+
+localPlayer.CharacterAdded:Connect(function(character)
+    local inputService = game:GetService("UserInputService")
+    inputService.InputBegan:Connect(onKeyPress)
+end)
