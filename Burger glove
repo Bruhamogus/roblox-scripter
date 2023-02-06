@@ -1,0 +1,53 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local mouse = player:GetMouse()
+
+local cooldownTime = 15
+local cooldownRemaining = 0
+
+local function onKeyPress(actionName)
+    if actionName == "Ability" and cooldownRemaining == 0 then
+        local burger = Instance.new("Part")
+        burger.Anchored = true
+        burger.CanCollide = true
+        burger.Size = Vector3.new(2, 1, 1)
+        burger.CFrame = CFrame.new(player.Character.Head.Position) + Vector3.new(0, 2, 0)
+        burger.Parent = game.Workspace
+
+        local bodyForce = Instance.new("BodyForce")
+        bodyForce.Force = Vector3.new(0, 60, 0)
+        bodyForce.Parent = burger
+
+        burger.Touched:Connect(function(hit)
+            local character = hit.Parent
+            if character:FindFirstChild("Humanoid") then
+                local humanoid = character:FindFirstChild("Humanoid")
+                humanoid.PlatformStand = true
+                humanoid:ChangeState(Enum.HumanoidStateType.Ragdoll)
+
+                local bodyVelocity = Instance.new("BodyVelocity")
+                bodyVelocity.Velocity = Vector3.new(0, 4, 10)
+                bodyVelocity.Parent = character.Head
+
+                RunService.Stepped:Wait()
+                bodyVelocity:Destroy()
+                humanoid.PlatformStand = false
+
+                wait(5)
+                humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+            end
+        end)
+
+        cooldownRemaining = cooldownTime
+    end
+end
+
+mouse.Button1Down:Connect(function() onKeyPress("Ability") end)
+
+while wait(1) do
+    if cooldownRemaining > 0 then
+        cooldownRemaining = cooldownRemaining - 1
+    end
+end
