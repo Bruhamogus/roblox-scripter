@@ -1,0 +1,31 @@
+-- Create a new ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SlapCounter"
+screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+
+-- Create a new Frame
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0.3, 0, 0.2, 0)
+frame.Position = UDim2.new(0.35, 0, 0.4, 0)
+frame.BackgroundColor3 = Color3.fromRGB(169, 169, 169)
+frame.Parent = screenGui
+
+-- Create a new TextLabel
+local textLabel = Instance.new("TextLabel")
+textLabel.Size = UDim2.new(1, 0, 1, 0)
+textLabel.Text = "Slaps: 0"
+textLabel.TextColor3 = Color3.new(1, 1, 1)
+textLabel.TextScaled = true
+textLabel.Parent = frame
+
+-- Create a local variable to store the amount of slaps
+local slapCount = 0
+
+-- Listen for a "Slap" event and update the UI when it is fired
+game.ReplicatedStorage.SlapEvent.OnServerEvent:Connect(function(player, targetPlayer)
+  -- Only increase the slap count if the local player is the one who slapped
+  if player == game.Players.LocalPlayer then
+    slapCount = slapCount + 1
+    textLabel.Text = "Slaps: " .. slapCount
+  end
+end)
