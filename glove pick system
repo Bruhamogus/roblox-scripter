@@ -1,0 +1,27 @@
+local requiredSlaps = 10
+local itemId = 123456789
+local soundId = 5521959695
+
+local players = game:GetService("Players")
+local player = players.LocalPlayer
+local playerSlaps = {}
+
+local model = script.Parent
+
+model.ClickDetector.MouseClick:Connect(function(player)
+    if not playerSlaps[player.Name] then
+        playerSlaps[player.Name] = 0
+    end
+    playerSlaps[player.Name] = playerSlaps[player.Name] + 1
+    if playerSlaps[player.Name] >= requiredSlaps then
+        local item = Instance.new("HopperBin", player.Backpack)
+        item.BinType = "GameTool"
+        item.Parent = player.Backpack
+        item.Active = true
+
+        local sound = Instance.new("Sound", model)
+        sound.SoundId = "rbxassetid://" .. soundId
+        sound.Volume = 1
+        sound.Play()
+    end
+end)
