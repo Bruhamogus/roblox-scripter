@@ -1,0 +1,68 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local key = "e"
+local cooldownTime = 60
+
+local bindLength = 5
+local ropeThickness = 0.25
+local ropeWidth = 0.6
+local trunkWidth = 1.99998
+local trunkHeight = 3.5
+
+local knockbackDistance = 3.555555
+
+local ragdollDuration = 1.5
+
+local currentCooldown = 0
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function findNearestPlayer(player)
+	local closestPlayer = nil
+	local closestDistance = math.huge
+	for _, targetPlayer in pairs(Players:GetPlayers()) do
+		if targetPlayer ~= player then
+			local distance = (targetPlayer.Character.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).magnitude
+			if distance < closestDistance then
+				closestDistance = distance
+				closestPlayer = targetPlayer
+			end
+		end
+	end
+	return closestPlayer
+end
+
+local function bindPlayer(player, targetPlayer)
+	local character = targetPlayer.Character
+	if character then
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			local trunk = Instance.new("Part")
+			trunk.Anchored = true
+			trunk.Size = Vector3.new(trunkWidth, trunkHeight, trunkWidth)
+			trunk.CFrame = CFrame.new(rootPart.Position + Vector3.new(0, trunkHeight / 2, 0))
+			trunk.Parent = game.Workspace
+
+			local ropePart = Instance.new("Part")
+			ropePart.Anchored = false
+			ropePart.Size = Vector3.new(ropeThickness, bindLength, ropeWidth)
+			ropePart.CFrame = CFrame.new(rootPart.Position + Vector3.new(0, bindLength / 2, 0), trunk.CFrame.p) * CFrame.new(0, 0, bindLength / 2)
+			ropePart.Parent = game.Workspace
+
+			local ropeConstraint = Instance.new("RopeConstraint")
+			ropeConstraint.Attachment0 = ropePart
+			ropeConstraint.Attachment1 = trunk
+			ropeConstraint.Length = bindLength
+			ropeConstraint.Parent = ropePart
+
+			local function onSlapped(hit)
+				rootPart.CFrame = rootPart.CFrame + (hit.Position - rootPart.Position).unit * knockbackDistance
+				rootPart.Anchored = false
+	
