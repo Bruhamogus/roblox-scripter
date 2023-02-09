@@ -1,0 +1,69 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("GuiEvent")
+
+local function openGui()
+	remoteEvent:FireServer("Open")
+end
+
+local function closeGui()
+	remoteEvent:FireServer("Close")
+end
+
+local function onGuiOpened()
+	local screenGui = Instance.new("ScreenGui")
+	local frame = Instance.new("Frame")
+	frame.Name = "GuiFrame"
+	frame.Parent = screenGui
+	frame.Size = UDim2.new(0.5, 0, 0.5, 0)
+	frame.Position = UDim2.new(0.25, 0, 0.25, 0)
+	frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	frame.BorderSizePixel = 0
+	frame.Draggable = true
+
+	local button = Instance.new("TextButton")
+	button.Name = "GreenButton"
+	button.Parent = frame
+	button.Size = UDim2.new(0.5, 0, 0.5, 0)
+	button.Position = UDim2.new(0.25, 0, 0.25, 0)
+	button.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+	button.BorderSizePixel = 0
+	button.Text = "Increase Graphics"
+
+	button.MouseButton1Click:Connect(function()
+		local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+		local buttonTween = TweenService:Create(button, tweenInfo, {BackgroundColor3 = Color3.fromRGB(0, 200, 0)})
+		buttonTween:Play()
+
+		remoteEvent:FireServer("IncreaseGraphics")
+	end)
+
+	screenGui.Parent = player.PlayerGui
+
+	frame.Closed.Event:Connect(function()
+		closeGui()
+	end)
+end
+
+local function onGuiClosed()
+	local screenGui = player.PlayerGui:WaitForChild("GuiFrame")
+
+	local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+	local frameTween = TweenService:Create(frame, tweenInfo, {Position = UDim2.new(1.5, 0, 0.25, 0)})
+	frameTween:Play()
+
+	frameTween.Completed:Connect(function()
+		screenGui:Destroy()
+	end)
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
