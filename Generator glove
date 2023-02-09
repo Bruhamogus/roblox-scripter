@@ -1,0 +1,70 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local backpack = player.Backpack
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function isBlocked(input)
+    local blockedWords = {
+        -- List of blocked words from the Roblox chat filter
+    }
+    for _, blockedWord in pairs(blockedWords) do
+        if string.match(input, blockedWord) then
+            return true
+        end
+    end
+    return false
+end
+
+mouse.KeyDown:Connect(function(key)
+    if key == "e" then
+        local input = player:RequestString("Enter the item you want to spawn:")
+        if isBlocked(input) then
+            player.PlayerGui.Toptext.TextLabel.Text = "Item '"..input.."' is not allowed to spawn due to the Roblox chat filter!"
+        else
+            local spawned = Instance.new(input)
+            spawned.Parent = backpack
+            if input == "Block" or input == "Sphere" or input == "Wedge" or input == "Cylinder" then
+                spawned.Parent = character
+                spawned.Anchored = false
+            end
+            spawned.Position = character.Head.Position + character.Head.CFrame.lookVector * 5
+            player.PlayerGui.Toptext.TextLabel.Text = "Item '"..input.."' spawned!"
+        end
+    end
+end)
+
+local function slap(hit)
+    remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+    local target = mouse.Target
+    if target and target:IsA("Player") then
+        slap(target)
+    end
+end)
+
+local function onSlapped(player, hit)
+    local character = player.Character
+    if character then
+        local humanoid = character:WaitForChild("Humanoid")
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+        local rootPart = character:FindFirstChild("HumanoidRootPart")
+        if rootPart then
+            rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+        end
+
+        wait(2)
+        humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+    end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
