@@ -1,0 +1,71 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local humanoid = character:WaitForChild("Humanoid")
+local mouse = player:GetMouse()
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+mouse.Button1Down:Connect(function()
+	local target = mouse.Target
+	if target and target:IsA("Player") then
+		slap(target)
+
+		-- Slap animation
+		local hand = character:FindFirstChild("RightHand")
+		if hand then
+			local goal = hand.CFrame * CFrame.new(0, 0, -5)
+			local slapTween = TweenService:Create(hand, TweenInfo.new(0.2), {CFrame = goal})
+			slapTween:Play()
+
+			wait(0.2)
+
+			local backTween = TweenService:Create(hand, TweenInfo.new(0.2), {CFrame = hand.CFrame})
+			backTween:Play()
+		end
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		-- Warp screen
+		local screenGui = Instance.new("ScreenGui")
+		local warp = Instance.new("ImageLabel")
+		warp.Name = "Warp"
+		warp.Parent = screenGui
+		warp.BackgroundTransparency = 1
+		warp.Image = "rbxassetid://169464171"
+		warp.Size = UDim2.new(1, 0, 1, 0)
+		warp.ZIndex = 2
+		screenGui.Parent = player.PlayerGui
+
+		local warpTween = TweenService:Create(warp, TweenInfo.new(4), {ImageTransparency = 0})
+		warpTween:Play()
+
+		wait(4)
+
+		-- Unwarp screen
+		local unwarp = Instance.new("ImageLabel")
+		unwarp.Name = "Unwarp"
+		unwarp.Parent = screenGui
+		unwarp.BackgroundTransparency = 1
+		unwarp.Image = "rbxassetid://169464183"
+		unwarp.Size = UDim2.new(1, 0, 1, 0)
+		unwarp.ZIndex = 2
+		unwarp.ImageTransparency = 1
+
+		local unwarpTween = TweenService:Create(unwarp, TweenInfo.new(2), {ImageTransparency = 0})
+		unwarpTween:Play()
+
+		-- Negative screen
+		local negative = Instance.new("ImageLabel")
+		negative.Name = "Negative"
