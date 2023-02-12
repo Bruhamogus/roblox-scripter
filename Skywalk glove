@@ -1,0 +1,67 @@
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+local remoteEvent = ReplicatedStorage:WaitForChild("SlapEvent")
+
+local gloveAbility = false
+local cooldown = false
+local timer = 30
+
+local function slap(hit)
+	remoteEvent:FireServer(hit)
+end
+
+game:GetService("UserInputService").InputBegan:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.E and not cooldown then
+		gloveAbility = true
+		cooldown = true
+	end
+end)
+
+local function onSlapped(player, hit)
+	local character = player.Character
+	if character then
+		local humanoid = character:WaitForChild("Humanoid")
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, true)
+
+		local rootPart = character:FindFirstChild("HumanoidRootPart")
+		if rootPart then
+			rootPart.CFrame = rootPart.CFrame + Vector3.new(0, 0, 5)
+		end
+
+		wait(2)
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	end
+end
+
+remoteEvent.OnServerEvent:Connect(onSlapped)
+
+game:GetService("UserInputService").InputEnded:Connect(function(input)
+	if input.KeyCode == Enum.KeyCode.MouseButton1 then
+		local target = game:GetService("UserInputService"):GetMouse().Target
+		if target and target:IsA("Player") then
+			slap(target)
+		end
+	end
+end)
+
+game:GetService("RunService").Stepped:Connect(function()
+	if gloveAbility then
+		humanoid.PlatformStand = true
+		wait(15)
+		humanoid.PlatformStand = false
+		gloveAbility = false
+	end
+
+	if cooldown then
+		timer = timer - 1
+		if timer <= 0 then
+			cooldown = false
+			timer = 30
+		end
+	end
+end)
